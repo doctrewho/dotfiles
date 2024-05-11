@@ -47,9 +47,10 @@ return {
         "stylua", -- lua formatter
         "isort", -- python formatter
         "black", -- python formatter
-        "pylint",
-        "eslint_d",
+        "pylint", -- python linter
+        "eslint_d", -- js linter
         "ansible-lint", -- ansible linter
+        "yamllint", -- yaml linter
       },
     })
   end,
