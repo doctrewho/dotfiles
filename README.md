@@ -26,6 +26,8 @@ Run the following:
 
     source .zshrc
 
+All dotfiles setup in GNU Stow format
+
 Start tmux and install the plugins (CNTL-A SHIFT-I)
 
 Start nvim and let it install what it needs
