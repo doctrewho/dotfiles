@@ -27,15 +27,15 @@ return {
     mason_lspconfig.setup({
       -- list of servers for mason to install
       ensure_installed = {
-        "tsserver",
-        "html",
-        "cssls",
-        "tailwindcss",
-        "svelte",
+        --  "tsserver",
+        --  "html",
+        --  "cssls",
+        --  "tailwindcss",
+        --  "svelte",
         "lua_ls",
-        "graphql",
-        "emmet_ls",
-        "prismals",
+        --  "graphql",
+        --  "emmet_ls",
+        --  "prismals",
         "pyright",
         "ansiblels",
       },
@@ -47,10 +47,10 @@ return {
         "stylua", -- lua formatter
         "isort", -- python formatter
         "black", -- python formatter
-        "pylint",
-        "eslint_d",
-        "ansible-lint",
-        "yamllint",
+        --  "eslint_d", -- javascript linter
+        "pylint", -- python linter
+        "ansible-lint", -- ansible linter
+        "yamllint", -- yaml linter
       },
     })
   end,
