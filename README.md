@@ -13,7 +13,7 @@ Pre-requisites:
 Run the following:
 
     export HOMEBREW_NO_ENV_HINTS="true"
-    brew install nvim fzf fd bat git-delta eza tlrc thefuck zoxide zsh-autosuggestions zsh-syntax-highlighting npm neofetch tmux lazygit yamllint
+    brew install nvim fzf fd bat git-delta eza tlrc thefuck zoxide zsh-autosuggestions zsh-syntax-highlighting npm neofetch tmux lazygit yamllint ripgrep
     brew tap homebrew/cask-fonts
     brew install font-agave-nerd-font
     curl -sS https://starship.rs/install.sh | sh
