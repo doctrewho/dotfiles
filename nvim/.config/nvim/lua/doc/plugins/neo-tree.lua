@@ -52,5 +52,10 @@ return {
         },
       },
     })
+
+    require("neo-tree.sources.filesystem.commands").refresh(require("neo-tree.sources.manager").get_state("filesystem"))
+
+    local events = require("neo-tree.events")
+    events.fire_event(events.GIT_EVENT)
   end,
 }
