@@ -49,3 +49,5 @@ opt.swapfile = false
 -- opt.highlight NonText guibg=none
 -- opt.highlight Normal ctermbg=none
 -- opt.highlight NonText ctermbg=none
+
+opt.timeoutlen = 1000

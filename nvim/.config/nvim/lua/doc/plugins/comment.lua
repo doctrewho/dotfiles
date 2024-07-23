@@ -14,6 +14,10 @@ return {
     comment.setup({
       -- for commenting tsx, jsx, svelte, html files
       pre_hook = ts_context_commentstring.create_pre_hook(),
+      opleader = {
+        line = "<leader>lc",
+        block = "<leader>lb",
+      },
     })
   end,
 }
