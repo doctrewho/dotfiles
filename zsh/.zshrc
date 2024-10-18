@@ -14,14 +14,15 @@ alias cd="z"
 alias cat="bat"
 alias less="bat"
 alias more="bat"
+alias gcc="gcc-14"
 
 # Disable Homebrew Hints
 export HOMEBREW_NO_ENV_HINTS="true"
 
-# Setup tmuxifier
-eval "$(~/.tmuxifier/bin/tmuxifier init -)"
 # Setup Homebrew
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+# Setup tmuxifier
+eval "$(~/.tmuxifier/bin/tmuxifier init -)"
 # Setup Starship
 eval "$(starship init zsh)"
 # Setup fzf key bindings and fuzzy completion
@@ -66,6 +67,9 @@ export FZF_DEFAULT_OPTS=" \
 # Set a theme for bat
 export BAT_THEME="Catppuccin Mocha"
 
+# Set a theme for eza
+export LS_COLORS="$(vivid generate catppuccin-mocha)"
+
 export FZF_CTRL_T_OPTS="--preview 'bat -n --color=always --line-range :500 {}'"
 export FZF_ALT_C_OPTS="--preview 'eza --tree --color=always {} | head -200'"
 
@@ -95,4 +99,4 @@ setopt hist_verify
 
 # Make it pretty at the end
 clear
-neofetch
+fastfetch
