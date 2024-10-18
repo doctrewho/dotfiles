@@ -44,7 +44,7 @@ right_format = "─╯"
 palette = 'catppuccin_mocha'
 
 [fill]
-symbol = ''
+symbol = ''
 style = 'grey'
 
 [palettes.catppuccin_mocha]
