@@ -24,8 +24,9 @@ Run the following:
 
     source .zshrc
 
-All dotfiles setup in GNU Stow format
-stow -t ~ <directory>
+All dotfiles setup in GNU Stow format:
+
+    stow -t ~ <directory>
 
 Start tmux and install the plugins (CNTL-A SHIFT-I)
 
