@@ -70,6 +70,9 @@ export FZF_DEFAULT_OPTS=" \
 # Set a theme for bat
 export BAT_THEME="Catppuccin Mocha"
 
+# Rebuild the bat cache
+bat cache -b
+
 # Set a theme for eza
 export LS_COLORS="$(vivid generate catppuccin-mocha)"
 
