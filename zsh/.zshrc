@@ -15,6 +15,7 @@ alias cat="bat"
 alias less="bat"
 alias more="bat"
 alias gcc="gcc-14"
+alias history="history 1"
 
 alias work="xrandr --output VNC-0 --mode 2560x1440"
 alias home="xrandr --output VNC-0 --mode 1920x1080"
