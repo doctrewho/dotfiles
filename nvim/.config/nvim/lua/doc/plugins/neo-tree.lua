@@ -1,6 +1,7 @@
 return {
   "nvim-neo-tree/neo-tree.nvim",
-  -- branch = "v3.x",
+  branch = "v3.x",
+  version = "3.29.0",
   dependencies = {
     "nvim-lua/plenary.nvim",
     "nvim-tree/nvim-web-devicons",
@@ -14,7 +15,7 @@ return {
     keymap.set("n", "<leader>ng", "<cmd>Neotree float git_status<CR>", { desc = "Neotree git status" })
 
     require("neo-tree").setup({
-      close_if_last_window = false,
+      close_if_last_window = true,
       enable_git_status = true,
       git_status = {
         symbols = {
