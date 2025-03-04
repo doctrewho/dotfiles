@@ -17,7 +17,7 @@ Pre-requisites
 Run the following:
 
     export HOMEBREW_NO_ENV_HINTS="true"
-    brew install nvim fzf fd feh bat git-delta eza tlrc thefuck zoxide zsh-autosuggestions zsh-syntax-highlighting npm neofetch tmux lazygit yamllint ripgrep vivid
+    brew install nvim fzf fd feh bat git-delta eza tlrc thefuck zoxide zsh-autosuggestions zsh-syntax-highlighting npm neofetch tmux lazygit yamllint ripgrep vivid tpm
     curl -sS https://starship.rs/install.sh | sh
     bat cache -b
     git clone https://github.com/junegunn/fzf-git.sh.git
