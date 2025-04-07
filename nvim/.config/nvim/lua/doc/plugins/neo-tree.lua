@@ -10,7 +10,7 @@ return {
   config = function()
     local keymap = vim.keymap -- for conciseness
 
-    keymap.set("n", "<leader>ee", "<cmd>Neotree toggle<CR>", { desc = "Neotree Open" })
+    keymap.set("n", "<leader>ee", "<cmd>Neotree toggle<CR>", { desc = "Neotree Toggle" })
     keymap.set("n", "<leader>nb", "<cmd>Neotree buffers reveal float<CR>", { desc = "Neotree buffer reveal" })
     keymap.set("n", "<leader>ng", "<cmd>Neotree float git_status<CR>", { desc = "Neotree git status" })
 
