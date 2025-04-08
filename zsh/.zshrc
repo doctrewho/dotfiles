@@ -21,6 +21,10 @@ alias work="xrandr --output VNC-0 --mode 2560x1440"
 alias home="xrandr --output VNC-0 --mode 1920x1080"
 alias laptop="xrandr --output VNC-0 --mode 1920x1200"
 
+# Set EDITOR values
+export EDITOR="nvim"
+export SUDO_EDITOR="$EDITOR"
+
 # Disable Homebrew Hints
 export HOMEBREW_NO_ENV_HINTS="true"
 
