@@ -198,7 +198,7 @@ format = "[ $duration  ]($style)"
 
 [time]
 disabled = false
-time_format = "%H:%M:%S"
+time_format = "%H:%M"
 style = "fg:surface0 bg:purple"
 format = '[ $time  ]($style)'
 
