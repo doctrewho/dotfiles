@@ -76,6 +76,9 @@ export FZF_DEFAULT_OPTS=" \
 # Set a theme for bat
 export BAT_THEME="Catppuccin Mocha"
 
+# Fix for bat showing symbols
+export LESSUTFCHARDEF=E000-F8FF:p,F0000-FFFFD:p,100000-10FFFD:p
+
 # Set a theme for eza
 export LS_COLORS="$(vivid generate catppuccin-mocha)"
 
