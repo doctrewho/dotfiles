@@ -29,6 +29,9 @@ export SUDO_EDITOR="$EDITOR"
 # Disable Homebrew Hints
 export HOMEBREW_NO_ENV_HINTS="true"
 
+# Enable Homebrew to use a local .curlrc
+export HOMEBREW_CURLRC=1
+
 # Setup Homebrew
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 # Setup tmuxifier
