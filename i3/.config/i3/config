@@ -13,7 +13,7 @@ set $mod Mod4
 exec_always --no-startup-id killall polybar
 exec_always --no-startup-id ~/.config/polybar/launch_polybar.sh
 #exec_always --no-startup-id /home/linuxbrew/.linuxbrew/bin/feh --bg-scale ~/Pictures/Star_Citizen_RSI_Zeus_v2_Cargo.jpg
-exec_always --no-startup-id /home/linuxbrew/.linuxbrew/bin/feh --bg-fill ~/Pictures/misc-starlancer-banners-sales-v1.png
+exec_always --no-startup-id /home/linuxbrew/.linuxbrew/bin/feh --bg-fill ~/Pictures/idris-p-fight.png
 exec --no-startup-id picom -CGb
 
 bindsym Print exec maim "/home/$USER/Pictures/$(date).jpg"
@@ -63,7 +63,8 @@ floating_modifier $mod
 tiling_drag modifier titlebar
 
 # start a terminal
-bindsym $mod+Return exec ~/.local/kitty.app/bin/kitty
+# bindsym $mod+Return exec ~/.local/kitty.app/bin/kitty
+bindsym $mod+Return exec /usr/local/bin/alacritty
 
 # kill focused window
 bindsym $mod+Shift+q kill
