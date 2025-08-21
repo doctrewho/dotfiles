@@ -50,8 +50,8 @@ bindings = [
 [keyboard]
 bindings = [
 { key = "N", mods = "Control|Shift", action = "CreateNewWindow" },
-{ key = "C", mods = "Alt", action = "Copy" },
-{ key = "V", mods = "Alt", action = "Paste" },
+{ key = "C", mods = "Super", action = "Copy" },
+{ key = "V", mods = "Super", action = "Paste" },
 ]
 
 [scrolling]
