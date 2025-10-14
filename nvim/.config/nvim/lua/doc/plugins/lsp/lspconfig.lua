@@ -96,6 +96,7 @@ return {
             })
           end,
         })
+        vim.lsp.enable("svelte")
       end,
       ["graphql"] = function()
         -- configure graphql language server
@@ -103,6 +104,7 @@ return {
           capabilities = capabilities,
           filetypes = { "graphql", "gql", "svelte", "typescriptreact", "javascriptreact" },
         })
+        vim.lsp.enable("graphql")
       end,
       ["emmet_ls"] = function()
         -- configure emmet language server
@@ -110,6 +112,7 @@ return {
           capabilities = capabilities,
           filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
         })
+        vim.lsp.enable("emmet_ls")
       end,
       ["lua_ls"] = function()
         -- configure lua server (with special settings)
@@ -127,6 +130,7 @@ return {
             },
           },
         })
+        vim.lsp.enable("lua_ls")
       end,
       ["ansiblels"] = function()
         vim.lsp.config("ansiblels", {
@@ -157,6 +161,7 @@ return {
           --on_attach = on_attach,
           --single_file_support = true,
         })
+        vim.lsp.enable("ansiblels")
       end,
     })
   end,
