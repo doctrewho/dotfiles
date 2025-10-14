@@ -31,16 +31,16 @@ dynamic_title = false
 resize_increments = true
 
 [window.dimensions]
-columns = 194
-lines = 62
+columns = 132
+lines = 60
 
 [window.position]
-x = 200
-y = 40
+x = 1800
+y = 160
 
 [window.padding]
-x = 2
-y = 2
+x = 0
+y = 0
 
 [mouse]
 bindings = [
