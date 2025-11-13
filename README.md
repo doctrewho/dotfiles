@@ -31,3 +31,5 @@ All dotfiles setup in GNU Stow format:
 Start tmux and install the plugins (CNTL-A SHIFT-I)
 
 Start nvim and let it install what it needs
+
+Note for MacOS look for Linux: https://www.youtube.com/watch?v=eTSO5xc-yhs
