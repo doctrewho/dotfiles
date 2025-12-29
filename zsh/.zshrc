@@ -11,7 +11,7 @@ alias ls="eza --color=always --long --git --icons=always"
 # Zoxide (better cd)
 alias cd="z"
 # Bat (better cat / less / more)
-alias cat="bat"
+alias cat="bat -p"
 alias less="bat"
 alias more="bat"
 alias gcc="gcc-14"
