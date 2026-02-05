@@ -77,9 +77,16 @@ fi
 
 bat cache -b
 
-# --- 6. Headless Setup for Neovim ---
+# --- 6. Automated Plugin Installations (Headless) ---
 echo "🛠️  Pre-installing Neovim plugins..."
 nvim --headless "+Lazy! sync" +qa
+
+echo "🔌 Pre-installing Tmux plugins..."
+# Start a temporary tmux server, run TPM install, and kill it
+tmux start-server
+tmux new-session -d
+~/.tmux/plugins/tpm/bin/install_plugins
+tmux kill-server
 
 # --- 7. Set Default Shell and Launch ---
 if [[ "$SHELL" != *"zsh"* ]]; then
