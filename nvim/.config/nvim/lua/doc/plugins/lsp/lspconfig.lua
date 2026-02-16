@@ -1,39 +1,33 @@
 return {
   "neovim/nvim-lspconfig",
-  -- Load early so :checkhealth sees LSP registrations
+  -- Load early so registrations exist before :checkhealth and before first YAML buffers
   event = { "VeryLazy", "BufReadPre", "BufNewFile" },
 
   dependencies = {
     "williamboman/mason.nvim",
-    "williamboman/mason-lspconfig.nvim", -- installation only; no setup_handlers anymore
+    "williamboman/mason-lspconfig.nvim",
     "hrsh7th/cmp-nvim-lsp",
     { "antosha417/nvim-lsp-file-operations", config = true },
-    { "folke/neodev.nvim", opts = {} }, -- must init before lua_ls config
+    { "folke/neodev.nvim", opts = {} },
   },
 
   config = function()
-    local mason_ok, mason = pcall(require, "mason")
-    if mason_ok then
-      mason.setup()
-    end
+    -- 0) Mason install management
+    local mason = require("mason")
+    mason.setup()
 
-    local mlsp_ok, mason_lspconfig = pcall(require, "mason-lspconfig")
-    if mlsp_ok then
-      mason_lspconfig.setup({
-        ensure_installed = { "lua_ls", "pyright", "ansiblels", "svelte", "graphql", "emmet_ls" },
-        automatic_installation = true,
-      })
-    end
+    local mason_lspconfig = require("mason-lspconfig")
+    mason_lspconfig.setup({
+      ensure_installed = { "lua_ls", "pyright", "ansiblels", "svelte", "graphql", "emmet_ls" },
+      automatic_installation = true,
+    })
 
-    pcall(require, "neodev")
-
-    local capabilities = require("cmp_nvim_lsp").default_capabilities()
-
+    -- 1) Buffer-local keymaps on attach
+    local keymap = vim.keymap
     vim.api.nvim_create_autocmd("LspAttach", {
       group = vim.api.nvim_create_augroup("UserLspConfig", {}),
       callback = function(ev)
         local opts = { buffer = ev.buf, silent = true }
-        local keymap = vim.keymap
 
         opts.desc = "Show LSP references"
         keymap.set("n", "gR", "<cmd>Telescope lsp_references<CR>", opts)
@@ -76,24 +70,23 @@ return {
       end,
     })
 
+    -- 2) Diagnostic signs
     local signs = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
     for type, icon in pairs(signs) do
       local hl = "DiagnosticSign" .. type
       vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
     end
 
+    -- 3) Shared capabilities
+    local capabilities = require("cmp_nvim_lsp").default_capabilities()
     local util = require("lspconfig.util")
 
-    -- Pyright
-    vim.lsp.config("pyright", {
-      capabilities = capabilities,
-      root_dir = util.root_pattern("pyproject.toml", "setup.py", "requirements.txt", ".git"),
-    })
+    -- 4) Register servers with the Neovim 0.11+ API and enable them
 
-    -- Lua (lua_ls)
+    -- Lua
     vim.lsp.config("lua_ls", {
+      autostart = true,
       capabilities = capabilities,
-      root_dir = util.root_pattern(".luarc.json", ".luarc.jsonc", ".git"),
       settings = {
         Lua = {
           diagnostics = { globals = { "vim" } },
@@ -102,13 +95,21 @@ return {
         },
       },
     })
+    vim.lsp.enable("lua_ls")
+
+    -- Pyright
+    vim.lsp.config("pyright", {
+      autostart = true,
+      capabilities = capabilities,
+      root_dir = util.root_pattern("pyproject.toml", "setup.py", "requirements.txt", ".git"),
+    })
+    vim.lsp.enable("pyright")
 
     -- Svelte
     vim.lsp.config("svelte", {
+      autostart = true,
       capabilities = capabilities,
-      root_dir = util.root_pattern("svelte.config.js", "package.json", ".git"),
-      on_attach = function(client, bufnr)
-        -- Notify Svelte LS when TS/JS files change
+      on_attach = function(client, _)
         vim.api.nvim_create_autocmd("BufWritePost", {
           pattern = { "*.js", "*.ts" },
           callback = function(ctx)
@@ -117,33 +118,41 @@ return {
         })
       end,
     })
+    vim.lsp.enable("svelte")
 
     -- GraphQL
     vim.lsp.config("graphql", {
+      autostart = true,
       capabilities = capabilities,
       filetypes = { "graphql", "gql", "svelte", "typescriptreact", "javascriptreact" },
       root_dir = util.root_pattern(".graphqlrc", ".graphqlrc.*", "graphql.config.*", ".git"),
     })
+    vim.lsp.enable("graphql")
 
     -- Emmet
     vim.lsp.config("emmet_ls", {
+      autostart = true,
       capabilities = capabilities,
       filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
-      root_dir = util.root_pattern(".git", "."),
     })
+    vim.lsp.enable("emmet_ls")
 
-    -- Ansible
-    vim.lsp.config("ansiblels", {
+    -- Ansible (more forgiving root_dir)
+    local ansible_cfg = {
+      name = "ansiblels", -- explicit name helps when starting manually
+      autostart = true,
+      cmd = { "ansible-language-server", "--stdio" },
       capabilities = capabilities,
-      filetypes = { "yaml", "yaml.ansible" }, -- if you don't have yaml.ansible ft, "yaml" is fine
-      root_dir = util.root_pattern("ansible.cfg", ".ansible-lint", ".git", "."),
+      filetypes = { "yaml", "yaml.ansible" }, -- or just { "yaml" } if you want to avoid health noise
+      root_dir = function(fname)
+        return util.root_pattern("ansible.cfg", ".ansible-lint")(fname)
+          or util.find_git_ancestor(fname)
+          or vim.loop.cwd()
+      end,
       settings = {
         ansible = {
-          ansible = {
-            path = "ansible",
-            useFullyQualifiedCollectionNames = true,
-          },
-          ansibleLint = { enabled = true, path = "ansible-lint" },
+          ansible = { path = "ansible", useFullyQualifiedCollectionNames = true },
+          ansibleLint = { enabled = true, path = "ansible-lint" }, -- set enabled=false temporarily if needed
           executionEnvironment = { enabled = false },
           python = { interpreterPath = "python" },
           completion = {
@@ -152,19 +161,63 @@ return {
           },
         },
       },
-    })
+      on_attach = function(_, bufnr)
+        vim.b.ansiblels_attached = true
+        -- Uncomment if you want a visual confirmation:
+        vim.notify("ansiblels attached to buffer " .. bufnr, vim.log.levels.INFO)
+      end,
+    }
+    vim.lsp.config("ansiblels", ansible_cfg)
+    vim.lsp.enable("ansiblels")
 
-    -- 8) (Optional) If you prefer explicit start instead of autostart:
-    --    You can start per-filetype, but in 0.11+ autostart should work once
-    --    you've registered a server with vim.lsp.config and it matches filetype/root.
-    --    Example of explicit start (not required typically):
-    -- vim.api.nvim_create_autocmd("FileType", {
-    --   pattern = { "lua", "python", "svelte", "graphql", "typescriptreact", "javascriptreact", "html", "yaml" },
-    --   callback = function(args)
-    --     -- The server name is inferred by Neovim from the registration; explicit starts are rarely needed now.
-    --     -- But if you want to force start:
-    --     -- vim.lsp.start(vim.lsp.get_configs().lua_ls) -- example for Lua
-    --   end,
-    -- })
+    -- 5) Defensive: if autostart didn’t fire, start ansiblels on FileType (idempotent)
+    local util = require("lspconfig.util")
+
+    vim.api.nvim_create_autocmd("FileType", {
+      pattern = { "yaml", "yaml.ansible" },
+      callback = function(args)
+        local bufnr = args.buf
+
+        -- Skip non-normal buffers and health buffers
+        local bt, ft = vim.bo[bufnr].buftype, vim.bo[bufnr].filetype
+        if bt ~= "" and bt ~= "acwrite" then
+          return
+        end
+        if ft == "checkhealth" then
+          return
+        end
+
+        -- Already attached? do nothing
+        if #vim.lsp.get_clients({ bufnr = bufnr, name = "ansiblels" }) > 0 then
+          return
+        end
+
+        -- Build a fresh, minimal config to avoid sharing closures/tables
+        local root = util.root_pattern("ansible.cfg", ".ansible-lint")(vim.api.nvim_buf_get_name(bufnr))
+          or util.find_git_ancestor(vim.api.nvim_buf_get_name(bufnr))
+          or vim.loop.cwd()
+
+        vim.lsp.start({
+          name = "ansiblels",
+          cmd = { "ansible-language-server", "--stdio" },
+          autostart = true,
+          capabilities = capabilities,
+          root_dir = root,
+          filetypes = { "yaml" }, -- simplest. Use only yaml to avoid health “unknown filetype” noise
+          settings = {
+            ansible = {
+              ansible = { path = "ansible", useFullyQualifiedCollectionNames = true },
+              ansibleLint = { enabled = true, path = "ansible-lint" }, -- set false to test
+              executionEnvironment = { enabled = false },
+              python = { interpreterPath = "python" },
+              completion = {
+                provideRedirectModules = true,
+                provideModuleOptionAliases = true,
+              },
+            },
+          },
+        }, { bufnr = bufnr })
+      end,
+    })
   end,
 }
