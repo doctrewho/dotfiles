@@ -1,46 +1,48 @@
 return {
   "nvim-treesitter/nvim-treesitter",
   branch = "main",
-  event = { "BufReadPre", "BufNewFile" },
-  build = ":TSUpdate",
+  lazy = false, -- Treesitter should not be lazy-loaded
+  build = ":TSUpdate", -- keep parsers in sync with the plugin
+
   dependencies = {
     "windwp/nvim-ts-autotag",
-    "MeanderingProgrammer/treesitter-modules.nvim",
   },
-  config = function()
-    -- USE 'config' (singular), NOT 'configs'
-    local ts_config = require("nvim-treesitter.config")
 
-    ts_config.setup({
+  config = function()
+    -- ✅ NEW API on the `main` branch:
+    --    require the top-level module and call `.setup()`
+    local TS = require("nvim-treesitter")
+
+    TS.setup({
       highlight = { enable = true },
       indent = { enable = true },
+
       ensure_installed = {
-        "json",
-        "yaml",
         "bash",
-        "lua",
-        "vim",
         "dockerfile",
         "gitignore",
+        "json",
+        "lua",
         "query",
+        "vim",
         "vimdoc",
+        "yaml",
+        -- Add what you preview/edit to improve Telescope previews:
+        -- "typescript", "tsx", "html", "css", "markdown", "markdown_inline"
       },
-    })
 
-    -- Restores the missing 'incremental_selection' logic
-    require("treesitter-modules").setup({
+      -- ✅ Use real keycodes (no HTML entities)
       incremental_selection = {
         enable = true,
         keymaps = {
-          init_selection = "<C-space>",
-          node_incremental = "<C-space>",
+          init_selection = "<C-Space>",
+          node_incremental = "<C-Space>",
           scope_incremental = false,
-          node_decremental = "<bs>",
+          node_decremental = "<BS>",
         },
       },
     })
 
-    -- Setup autotag separately
     require("nvim-ts-autotag").setup()
   end,
 }

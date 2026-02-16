@@ -38,11 +38,13 @@ opt.splitbelow = true -- split horizontal window to the bottom
 -- turn off swapfile
 opt.swapfile = false
 
---vim.filetype.add({
---  extension = {
---    yml = "yaml.ansible",
---  },
---})
+opt.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
+
+vim.filetype.add({
+  extension = {
+    yml = "yaml.ansible",
+  },
+})
 
 -- Trying to get the background to be transparent
 -- opt.highlight Normal guibg=none

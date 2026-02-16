@@ -1,3 +1,5 @@
 nvim/.config/nvim/lazy-lock.json
 nvim/.config/nvim/lua/doc/plugins/codeium*
 nvim/.config/nvim/lua/doc/plugins/dell*
+nvim/.config/nvim/lua/doc/plugins/lsp/node_modules
+nvim/.config/nvim/lua/doc/plugins/lsp/package*

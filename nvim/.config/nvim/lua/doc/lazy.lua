@@ -19,4 +19,7 @@ require("lazy").setup({ { import = "doc.plugins" }, { import = "doc.plugins.lsp"
   change_detection = {
     notify = false,
   },
+  rocks = {
+    enabled = false,
+  },
 })

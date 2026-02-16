@@ -1,20 +1,10 @@
+-- mason.lua
 return {
-  "williamboman/mason.nvim",
-  dependencies = {
-    "williamboman/mason-lspconfig.nvim",
-    "WhoIsSethDaniel/mason-tool-installer.nvim",
-  },
-  config = function()
-    -- import mason
-    local mason = require("mason")
-
-    -- import mason-lspconfig
-    local mason_lspconfig = require("mason-lspconfig")
-
-    local mason_tool_installer = require("mason-tool-installer")
-
-    -- enable mason and configure icons
-    mason.setup({
+  -- 1) Mason core
+  {
+    "williamboman/mason.nvim",
+    build = ":MasonUpdate", -- keep registries fresh
+    opts = {
       ui = {
         icons = {
           package_installed = "✓",
@@ -22,36 +12,53 @@ return {
           package_uninstalled = "✗",
         },
       },
-    })
+    },
+  },
 
-    mason_lspconfig.setup({
-      -- list of servers for mason to install
+  -- 2) LSP server bridge for Mason
+  {
+    "williamboman/mason-lspconfig.nvim",
+    dependencies = { "williamboman/mason.nvim" },
+    opts = {
+      -- Mason will ensure these LSP servers are installed
       ensure_installed = {
-        --  "tsserver",
-        --  "html",
-        --  "cssls",
-        --  "tailwindcss",
-        --  "svelte",
         "lua_ls",
-        --  "graphql",
-        --  "emmet_ls",
-        --  "prismals",
         "pyright",
         "ansiblels",
       },
-    })
+      -- Optional: automatically install configured servers via lspconfig
+      automatic_installation = true,
+    },
+    config = function(_, opts)
+      require("mason-lspconfig").setup(opts)
 
-    mason_tool_installer.setup({
+      -- (Optional) set up servers via lspconfig here or elsewhere
+      -- local lspconfig = require("lspconfig")
+      -- for _, server in ipairs(opts.ensure_installed or {}) do
+      --   lspconfig[server].setup({})
+      -- end
+    end,
+  },
+
+  -- 3) Non-LSP tools (formatters/linters/debuggers)
+  {
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    dependencies = { "williamboman/mason.nvim" },
+    opts = {
       ensure_installed = {
-        "prettier", -- prettier formatter
-        "stylua", -- lua formatter
-        "isort", -- python formatter
-        "black", -- python formatter
-        --  "eslint_d", -- javascript linter
-        "pylint", -- python linter
-        "ansible-lint", -- ansible linter
-        "yamllint", -- yaml linter
+        "prettier",
+        "stylua",
+        "isort",
+        "black",
+        "pylint",
+        "ansible-lint",
+        "yamllint",
       },
-    })
-  end,
+      -- Optional quality-of-life flags:
+      run_on_start = true, -- install missing tools on startup
+      start_delay = 3000, -- ms delay before running on start
+      debounce_hours = 24, -- don't run more than once a day
+      auto_update = false, -- set true if you prefer auto-updates
+    },
+  },
 }
