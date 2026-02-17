@@ -1,0 +1,100 @@
+return {
+  "stevearc/conform.nvim",
+  event = { "BufReadPre", "BufNewFile" },
+  cmd = { "ConformInfo" },
+
+  opts = function()
+    local util = require("lspconfig.util")
+
+    -- Toggle flags so you can turn autoformat on/off quickly
+    --   :FormatDisable      (buffer & global aware)
+    --   :FormatEnable
+    vim.api.nvim_create_user_command("FormatDisable", function(args)
+      if args.bang then
+        vim.b.disable_autoformat = true
+      else
+        vim.g.disable_autoformat = true
+      end
+    end, { bang = true, desc = "Disable Conform format_on_save (use ! for buffer only)" })
+
+    vim.api.nvim_create_user_command("FormatEnable", function()
+      vim.b.disable_autoformat = false
+      vim.g.disable_autoformat = false
+    end, { desc = "Enable Conform format_on_save" })
+
+    return {
+      -- Show notifications when a formatter errors
+      notify_on_error = true,
+
+      -- Autoformat on save (respects the toggles above)
+      format_on_save = function(bufnr)
+        if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
+          return
+        end
+        return {
+          timeout_ms = 1500,
+          lsp_fallback = true, -- use LSP formatting only if no external formatter configured
+        }
+      end,
+
+      -- Bind filetypes to preferred formatters (first that exists on PATH will be used)
+      formatters_by_ft = {
+        -- Lua
+        lua = { "stylua" },
+
+        -- Web stack
+        svelte = { "prettierd", "prettier" },
+        javascript = { "prettierd", "prettier" },
+        javascriptreact = { "prettierd", "prettier" },
+        typescript = { "prettierd", "prettier" },
+        typescriptreact = { "prettierd", "prettier" },
+        graphql = { "prettierd", "prettier" },
+        html = { "prettierd", "prettier" },
+        css = { "prettierd", "prettier" },
+        scss = { "prettierd", "prettier" },
+        less = { "prettierd", "prettier" },
+
+        -- YAML / Ansible YAML
+        yaml = { "prettierd", "prettier" },
+        ["yaml.ansible"] = { "prettierd", "prettier" },
+
+      },
+
+      -- Per-formatter tweaks
+      formatters = {
+        stylua = {
+          -- If you want to force options (otherwise stylua.toml takes precedence)
+          -- prepend_args = { "--indent-type", "Spaces", "--indent-width", "2" },
+        },
+        prettier = {
+          -- Prefer project-local prettier if available
+          prefer_local = "node_modules/.bin",
+        },
+        prettierd = {
+          -- prettierd automatically respects project configs (.prettierrc, etc.)
+        },
+
+        -- (Optional) You can define a custom formatter that runs ansible-lint --fix
+        -- PRO TIP: keep this off by default; ansible-lint's autofix is limited.
+        -- ansible_lint_fix = {
+        --   command = "ansible-lint",
+        --   args = { "--fix", "--parseable", "--nocolor" },
+        --   stdin = false, -- ansible-lint edits files on disk; Conform will handle tempfiles
+        -- },
+      },
+    }
+  end,
+
+  keys = {
+    {
+      "<leader>cf",
+      function()
+        require("conform").format({ async = true, lsp_fallback = true })
+      end,
+      desc = "Format buffer",
+    },
+    { "<leader>cI", "<cmd>ConformInfo<CR>", desc = "Conform: Info" },
+    { "<leader>cD", "<cmd>FormatDisable<CR>", desc = "Conform: Disable format_on_save" },
+    { "<leader>cE", "<cmd>FormatEnable<CR>",  desc = "Conform: Enable format_on_save"  },
+  },
+}
