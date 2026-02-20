@@ -1,23 +1,45 @@
+[user]
+	email = jeffrey.smith@dell.com
+  name = Jeff Smith
+
 [core]
     pager = delta
 
 [interactive]
-    diffFilter = delta --color-only
+    diffFilter = delta --color-only   
+                                     
 
 [delta]
-    navigate = true    # use n and N to move between diff sections
-    side-by-side = true
+    # layout/presentation you've chosen earlier
+    side-by-side = false
+    keep-plus-minus-markers = true
+    navigate = true
+    line-numbers = true
 
+    # ----- Catppuccin Mocha: foreground-only colors (no backgrounds) -----
+    # Whole-line styles
+    plus-style   = "#a6e3a1"   ; added lines → Mocha Green
+    minus-style  = "#f38ba8"   ; removed lines → Mocha Red
+    zero-style   = "#cdd6f4"   ; context lines (Mocha Text) or use "#7f849c"
 
-    # delta detects terminal colors automatically; set one of these to disable auto-detection
-    # dark = true
-    # light = true
+    # Emphasized (word-level) parts inside +/- lines → also foreground-only
+    plus-emph-style        = "#a6e3a1"
+    plus-non-emph-style    = "#a6e3a1"
+    minus-emph-style       = "#f38ba8"
+    minus-non-emph-style   = "#f38ba8"
+
+    # Optional: line-number tints in Mocha shades
+    line-numbers-plus-style  = "#a6e3a1"
+    line-numbers-minus-style = "#f38ba8"
+    line-numbers-zero-style  = "#7f849c"
+
+    # Optional: subtle hunk/file headers in Mocha Blue (or Mauve if you prefer)
+    hunk-header-style            = "file line-number syntax"
+    hunk-header-decoration-style = "#89b4fa"
+    file-style                   = "bold #cdd6f4"
 
 [merge]
     conflictstyle = diff3
 
 [diff]
     colorMoved = default
-[user]
-	email = jeffrey.smith@dell.com
-	name = Jeff Smith

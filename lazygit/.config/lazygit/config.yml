@@ -1,28 +1,53 @@
----
 gui:
   nerdFontsVersion: "2"
   showIcons: true
+  # ---- Catppuccin Mocha theme (Mauve accent for borders/headers) ----
   theme:
-    lightTheme: false
-    # Catppuccin Mocha palette
-    activeBorderColor: ["#a6e3a1", "bold"]
-    inactiveBorderColor: ["#6c7086"]
-    optionsTextColor: ["#cdd6f4"]
+    activeBorderColor: ["#cba6f7", "bold"] # Mauve
+    inactiveBorderColor: ["#a6adc8"]
+    optionsTextColor: ["#cba6f7"]
     selectedLineBgColor: ["#313244"]
-    inactiveViewSelectedLineBgColor: ["#1e1e2e"]
-    selectedRangeBgColor: ["#45475a"]
+    selectedRangeBgColor: ["#313244"]
     cherryPickedCommitBgColor: ["#45475a"]
-    cherryPickedCommitFgColor: ["#89b4fa"]
-    unstagedChangesColor: ["#f38ba8"]
-    defaultFgColor: ["#cdd6f4"]
+    cherryPickedCommitFgColor: ["#cba6f7"]
+    unstagedChangesColor: ["#f38ba8"] # Mocha Red
+    defaultFgColor: ["#cdd6f4"] # Mocha Text
+    searchingActiveBorderColor: ["#f9e2af"]
+  # Author initials bubble color in Commits panel — Mocha Blue
+  authorColors:
+    "*": "#89b4fa" # exact Mocha blue
+git:
+  pagers:
+    - colorArg: "always"
+      pager: >
+        delta --paging=never --dark
 
-# Keybinding examples (optional — safe defaults)
+              --keep-plus-minus-markers
+              --navigate
+
+              # ----- Mocha: line colors (no backgrounds) -----
+              --plus-style      "#a6e3a1"     # added lines text → Mocha Green
+              --minus-style     "#f38ba8"     # removed lines text → Mocha Red
+              --zero-style      "#cdd6f4"     # context lines text → Mocha Text
+
+              # Emphasis styles (word-level) → also foreground-only (no bg)
+              --plus-emph-style       "#a6e3a1"
+              --plus-non-emph-style   "#a6e3a1"
+              --minus-emph-style      "#f38ba8"
+              --minus-non-emph-style  "#f38ba8"
+
+              # ----- Line numbers on, tinted to Mocha -----
+              --line-numbers
+              --line-numbers-plus-style  "#a6e3a1"
+              --line-numbers-minus-style "#f38ba8"
+              --line-numbers-zero-style  "#7f849c"   # overlay1: subtle neutral
+
+              # ----- Hunk/file headers with a Mocha accent -----
+              --hunk-header-style            "file line-number syntax"
+              --hunk-header-decoration-style "#89b4fa"  # Mocha Blue accent
+              --file-style                   "bold #cdd6f4"
 keybinding:
   universal:
     quit: "q"
     quitWithoutChangingDirectory: "Q"
     return: "<esc>"
-git:
-  pagers:
-    - colorArg: always
-      pager: delta --dark --paging=never
