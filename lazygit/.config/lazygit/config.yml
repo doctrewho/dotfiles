@@ -1,21 +1,23 @@
+---
 gui:
   nerdFontsVersion: "2"
   showIcons: true
-  # ---- Catppuccin Mocha theme (Mauve accent for borders/headers) ----
+
   theme:
-    activeBorderColor: ["#cba6f7", "bold"] # Mauve
+    activeBorderColor: ["#cba6f7", "bold"]
     inactiveBorderColor: ["#a6adc8"]
     optionsTextColor: ["#cba6f7"]
     selectedLineBgColor: ["#313244"]
     selectedRangeBgColor: ["#313244"]
     cherryPickedCommitBgColor: ["#45475a"]
     cherryPickedCommitFgColor: ["#cba6f7"]
-    unstagedChangesColor: ["#f38ba8"] # Mocha Red
-    defaultFgColor: ["#cdd6f4"] # Mocha Text
+    unstagedChangesColor: ["#f38ba8"]
+    defaultFgColor: ["#cdd6f4"]
     searchingActiveBorderColor: ["#f9e2af"]
-  # Author initials bubble color in Commits panel — Mocha Blue
+
   authorColors:
-    "*": "#89b4fa" # exact Mocha blue
+    "*": "#89b4fa"
+
 git:
   pagers:
     - colorArg: "always"
