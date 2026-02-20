@@ -77,9 +77,32 @@ return {
       vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
     end
 
-    -- 3) Shared capabilities
+    -- 3) Shared capabilities + utils
     local capabilities = require("cmp_nvim_lsp").default_capabilities()
     local util = require("lspconfig.util")
+
+    -- ---- Defensive helpers for root_dir -----------------
+    local function coerce_path(x)
+      -- Always return a (absolute) path string (or empty string)
+      if type(x) == "number" then
+        x = vim.api.nvim_buf_get_name(x)
+      end
+      if not x or x == "" then
+        x = vim.api.nvim_buf_get_name(0)
+      end
+      return x
+    end
+
+    local function safe_git_root(x)
+      x = coerce_path(x)
+      return util.find_git_ancestor(x)
+    end
+
+    local function or_dirname(x)
+      x = coerce_path(x)
+      return util.path.dirname(x)
+    end
+    -- -----------------------------------------------------
 
     -- 4) Register servers with the Neovim 0.11+ API and enable them
 
@@ -94,6 +117,9 @@ return {
           workspace = { checkThirdParty = false },
         },
       },
+      root_dir = function(fname)
+        return safe_git_root(fname) or or_dirname(fname)
+      end,
     })
     vim.lsp.enable("lua_ls")
 
@@ -101,7 +127,12 @@ return {
     vim.lsp.config("pyright", {
       autostart = true,
       capabilities = capabilities,
-      root_dir = util.root_pattern("pyproject.toml", "setup.py", "requirements.txt", ".git"),
+      root_dir = function(fname)
+        fname = coerce_path(fname)
+        return util.root_pattern("pyproject.toml", "setup.py", "requirements.txt", ".git")(fname)
+          or safe_git_root(fname)
+          or or_dirname(fname)
+      end,
     })
     vim.lsp.enable("pyright")
 
@@ -117,6 +148,9 @@ return {
           end,
         })
       end,
+      root_dir = function(fname)
+        return safe_git_root(fname) or or_dirname(fname)
+      end,
     })
     vim.lsp.enable("svelte")
 
@@ -125,7 +159,12 @@ return {
       autostart = true,
       capabilities = capabilities,
       filetypes = { "graphql", "gql", "svelte", "typescriptreact", "javascriptreact" },
-      root_dir = util.root_pattern(".graphqlrc", ".graphqlrc.*", "graphql.config.*", ".git"),
+      root_dir = function(fname)
+        fname = coerce_path(fname)
+        return util.root_pattern(".graphqlrc", ".graphqlrc.*", "graphql.config.*", ".git")(fname)
+          or safe_git_root(fname)
+          or or_dirname(fname)
+      end,
     })
     vim.lsp.enable("graphql")
 
@@ -134,6 +173,9 @@ return {
       autostart = true,
       capabilities = capabilities,
       filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
+      root_dir = function(fname)
+        return safe_git_root(fname) or or_dirname(fname)
+      end,
     })
     vim.lsp.enable("emmet_ls")
 
@@ -143,11 +185,10 @@ return {
       autostart = true,
       cmd = { "ansible-language-server", "--stdio" },
       capabilities = capabilities,
-      filetypes = { "yaml", "yaml.ansible" }, -- or just { "yaml" } if you want to avoid health noise
+      filetypes = { "yaml", "yaml.ansible" },
       root_dir = function(fname)
-        return util.root_pattern("ansible.cfg", ".ansible-lint")(fname)
-          or util.find_git_ancestor(fname)
-          or vim.loop.cwd()
+        fname = coerce_path(fname)
+        return util.root_pattern("ansible.cfg", ".ansible-lint")(fname) or safe_git_root(fname) or vim.loop.cwd()
       end,
       settings = {
         ansible = {
@@ -164,15 +205,13 @@ return {
       on_attach = function(_, bufnr)
         vim.b.ansiblels_attached = true
         -- Uncomment if you want a visual confirmation:
-        vim.notify("ansiblels attached to buffer " .. bufnr, vim.log.levels.INFO)
+        -- vim.notify("ansiblels attached to buffer " .. bufnr, vim.log.levels.INFO)
       end,
     }
     vim.lsp.config("ansiblels", ansible_cfg)
     vim.lsp.enable("ansiblels")
 
     -- 5) Defensive: if autostart didn’t fire, start ansiblels on FileType (idempotent)
-    local util = require("lspconfig.util")
-
     vim.api.nvim_create_autocmd("FileType", {
       pattern = { "yaml", "yaml.ansible" },
       callback = function(args)
@@ -192,9 +231,9 @@ return {
           return
         end
 
-        -- Build a fresh, minimal config to avoid sharing closures/tables
-        local root = util.root_pattern("ansible.cfg", ".ansible-lint")(vim.api.nvim_buf_get_name(bufnr))
-          or util.find_git_ancestor(vim.api.nvim_buf_get_name(bufnr))
+        local bufname = vim.api.nvim_buf_get_name(bufnr)
+        local root = util.root_pattern("ansible.cfg", ".ansible-lint")(bufname)
+          or safe_git_root(bufname)
           or vim.loop.cwd()
 
         vim.lsp.start({
