@@ -29,9 +29,6 @@ lua/<namespace>/plugins/lsp/
     install-these-servers
     _template.lua
     <server>.lua
-scripts/
-  rename_neovim_namespace.sh
-  validate_neovim_namespace.sh
 ```
 
 ### Namespace
