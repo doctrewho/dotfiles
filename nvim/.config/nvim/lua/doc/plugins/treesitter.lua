@@ -1,17 +1,17 @@
 return {
   "nvim-treesitter/nvim-treesitter",
-  lazy = false, -- load early so highlighting is available ASAP
-  build = ":TSUpdate", -- keep parsers current
+  event = { "BufReadPost", "BufNewFile" },
+  build = ":TSUpdate",
 
   dependencies = {
-    "windwp/nvim-ts-autotag", -- optional; handy for HTML/TSX
+    "windwp/nvim-ts-autotag",
     -- "nvim-treesitter/nvim-treesitter-textobjects", -- optional
   },
 
   config = function()
-    local ok_configs, configs = pcall(require, "nvim-treesitter.configs")
-    if not ok_configs then
-      vim.notify("[treesitter] nvim-treesitter.configs not found. Run :Lazy sync", vim.log.levels.WARN)
+    local ok_config, configs = pcall(require, "nvim-treesitter.config")
+    if not ok_config then
+      vim.notify("[treesitter] nvim-treesitter.config not found. Run :Lazy sync", vim.log.levels.WARN)
       return
     end
 
