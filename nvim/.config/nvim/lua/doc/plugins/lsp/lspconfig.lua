@@ -11,10 +11,12 @@ return {
   },
 
   config = function()
-    ---------------------------------------------------------------------------
-    -- Load ensure_installed list from servers/install-these-servers
-    ---------------------------------------------------------------------------
     local servers_file = vim.fn.stdpath("config") .. "/lua/doc/plugins/lsp/servers/install-these-servers"
+
+    local function notify(msg)
+      print(msg)
+      vim.notify(msg)
+    end
 
     local function read_list()
       if vim.fn.filereadable(servers_file) ~= 1 then
@@ -36,9 +38,6 @@ return {
 
     local ensure_list = read_list()
 
-    ---------------------------------------------------------------------------
-    -- Mason + Mason-LSPConfig
-    ---------------------------------------------------------------------------
     local mason = require("mason")
     mason.setup()
 
@@ -48,9 +47,6 @@ return {
       automatic_installation = false,
     })
 
-    ---------------------------------------------------------------------------
-    -- LSP keymaps
-    ---------------------------------------------------------------------------
     local keymap = vim.keymap
     vim.api.nvim_create_autocmd("LspAttach", {
       group = vim.api.nvim_create_augroup("UserLspConfig", {}),
@@ -98,18 +94,12 @@ return {
       end,
     })
 
-    ---------------------------------------------------------------------------
-    -- Diagnostic signs
-    ---------------------------------------------------------------------------
     local signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
     for type, icon in pairs(signs) do
       local hl = "DiagnosticSign" .. type
       vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
     end
 
-    ---------------------------------------------------------------------------
-    -- Shared capabilities + utils
-    ---------------------------------------------------------------------------
     local capabilities = require("cmp_nvim_lsp").default_capabilities()
     local util = require("lspconfig.util")
 
@@ -133,29 +123,24 @@ return {
       return util.path.dirname(x)
     end
 
-    ---------------------------------------------------------------------------
-    -- Commands: LspAdd, LspRemove, LspValidateServers
-    ---------------------------------------------------------------------------
-
-    -- :LspAdd <server>
     vim.api.nvim_create_user_command("LspAdd", function(opts)
       local server = vim.trim(opts.args)
       if server == "" then
-        print("No server name provided")
+        notify("No server name provided")
         return
       end
 
       local list = read_list()
       for _, s in ipairs(list) do
         if s == server then
-          print("Server already listed: " .. server)
+          notify("Server already listed: " .. server)
           return
         end
       end
 
       table.insert(list, server)
       write_list(list)
-      print("Added server: " .. server)
+      notify("Added server: " .. server)
     end, {
       nargs = 1,
       complete = function()
@@ -163,11 +148,10 @@ return {
       end,
     })
 
-    -- :LspRemove <server>
     vim.api.nvim_create_user_command("LspRemove", function(opts)
       local server = vim.trim(opts.args)
       if server == "" then
-        print("No server name provided")
+        notify("No server name provided")
         return
       end
 
@@ -184,12 +168,12 @@ return {
       end
 
       if not removed then
-        print("Server not found: " .. server)
+        notify("Server not found: " .. server)
         return
       end
 
       write_list(new)
-      print("Removed server: " .. server)
+      notify("Removed server: " .. server)
     end, {
       nargs = 1,
       complete = function()
@@ -197,7 +181,6 @@ return {
       end,
     })
 
-    -- :LspValidateServers
     vim.api.nvim_create_user_command("LspValidateServers", function()
       local list = read_list()
 
@@ -210,11 +193,11 @@ return {
         configs[name] = true
       end
 
-      print("Validating LSP server configuration…")
+      notify("Validating LSP server configuration…")
 
       for _, server in ipairs(list) do
         if not configs[server] then
-          print("⚠️  Listed but missing config file: " .. server)
+          notify("Listed but missing config file: " .. server)
         end
       end
 
@@ -227,16 +210,113 @@ return {
           end
         end
         if not found then
-          print("⚠️  Config file exists but not listed: " .. cfg)
+          notify("Config file exists but not listed: " .. cfg)
         end
       end
 
-      print("Validation complete.")
+      notify("Validation complete.")
     end, {})
 
-    ---------------------------------------------------------------------------
-    -- AUTO-DISCOVER SERVER FILES
-    ---------------------------------------------------------------------------
+    vim.api.nvim_create_user_command("LspList", function()
+      local list = read_list()
+
+      local dir = vim.fn.stdpath("config") .. "/lua/doc/plugins/lsp/servers"
+      local paths = vim.fn.globpath(dir, "*.lua", false, true)
+      local configs = {}
+
+      for _, path in ipairs(paths) do
+        local name = vim.fn.fnamemodify(path, ":t:r")
+        table.insert(configs, name)
+      end
+
+      notify("Servers listed for installation:")
+      for _, s in ipairs(list) do
+        print("  " .. s)
+      end
+
+      notify("Servers with config files:")
+      for _, s in ipairs(configs) do
+        print("  " .. s)
+      end
+    end, {})
+
+    vim.api.nvim_create_user_command("LspEdit", function(opts)
+      local server = vim.trim(opts.args)
+      if server == "" then
+        notify("No server name provided")
+        return
+      end
+
+      local path = vim.fn.stdpath("config") .. "/lua/doc/plugins/lsp/servers/" .. server .. ".lua"
+      if vim.fn.filereadable(path) == 1 then
+        vim.cmd("edit " .. path)
+        return
+      end
+
+      notify("Config file not found: " .. server)
+    end, {
+      nargs = 1,
+      complete = function()
+        local dir = vim.fn.stdpath("config") .. "/lua/doc/plugins/lsp/servers"
+        local paths = vim.fn.globpath(dir, "*.lua", false, true)
+        local names = {}
+        for _, path in ipairs(paths) do
+          table.insert(names, vim.fn.fnamemodify(path, ":t:r"))
+        end
+        return names
+      end,
+    })
+
+    vim.api.nvim_create_user_command("LspNew", function(opts)
+      local server = vim.trim(opts.args)
+      if server == "" then
+        notify("No server name provided")
+        return
+      end
+
+      local dir = vim.fn.stdpath("config") .. "/lua/doc/plugins/lsp/servers"
+      local template = dir .. "/_template.lua"
+      local target = dir .. "/" .. server .. ".lua"
+
+      if vim.fn.filereadable(target) == 1 then
+        notify("Config already exists: " .. server)
+        return
+      end
+
+      if vim.fn.filereadable(template) ~= 1 then
+        notify("Missing _template.lua")
+        return
+      end
+
+      vim.fn.copy(template, target)
+      notify("Created new server config: " .. server)
+    end, {
+      nargs = 1,
+    })
+
+    vim.api.nvim_create_user_command("LspSync", function()
+      local list = read_list()
+      local installed = mason_lspconfig.get_installed_servers()
+
+      notify("Syncing LSP servers…")
+
+      for _, s in ipairs(list) do
+        local found = false
+        for _, i in ipairs(installed) do
+          if i == s then
+            found = true
+            break
+          end
+        end
+        if not found then
+          notify("Installing missing server: " .. s)
+          mason_lspconfig.setup({ ensure_installed = list })
+        end
+      end
+
+      notify("Sync complete.")
+    end, {})
+
     local function list_servers()
       local dir = vim.fn.stdpath("config") .. "/lua/doc/plugins/lsp/servers"
       local paths = vim.fn.globpath(dir, "*.lua", false, true)
@@ -252,9 +332,6 @@ return {
 
     local servers = list_servers()
 
-    ---------------------------------------------------------------------------
-    -- LOAD EACH SERVER MODULE
-    ---------------------------------------------------------------------------
     for _, server in ipairs(servers) do
       require("doc.plugins.lsp.servers." .. server)(capabilities, util, coerce_path, safe_git_root, or_dirname)
     end
