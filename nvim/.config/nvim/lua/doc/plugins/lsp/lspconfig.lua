@@ -1,6 +1,5 @@
 return {
   "neovim/nvim-lspconfig",
-  -- Load early so registrations exist before :checkhealth and before first YAML buffers
   event = { "VeryLazy", "BufReadPre", "BufNewFile" },
 
   dependencies = {
@@ -12,17 +11,46 @@ return {
   },
 
   config = function()
-    -- 0) Mason install management
+    ---------------------------------------------------------------------------
+    -- Load ensure_installed list from servers/install-these-servers
+    ---------------------------------------------------------------------------
+    local servers_file = vim.fn.stdpath("config") .. "/lua/doc/plugins/lsp/servers/install-these-servers"
+
+    local function read_list()
+      if vim.fn.filereadable(servers_file) ~= 1 then
+        return {}
+      end
+      local lines = {}
+      for _, line in ipairs(vim.fn.readfile(servers_file)) do
+        line = vim.trim(line)
+        if line ~= "" and not line:match("^#") then
+          table.insert(lines, line)
+        end
+      end
+      return lines
+    end
+
+    local function write_list(tbl)
+      vim.fn.writefile(tbl, servers_file)
+    end
+
+    local ensure_list = read_list()
+
+    ---------------------------------------------------------------------------
+    -- Mason + Mason-LSPConfig
+    ---------------------------------------------------------------------------
     local mason = require("mason")
     mason.setup()
 
     local mason_lspconfig = require("mason-lspconfig")
     mason_lspconfig.setup({
-      ensure_installed = { "lua_ls", "pyright", "ansiblels" },
-      automatic_installation = true,
+      ensure_installed = ensure_list,
+      automatic_installation = false,
     })
 
-    -- 1) Buffer-local keymaps on attach
+    ---------------------------------------------------------------------------
+    -- LSP keymaps
+    ---------------------------------------------------------------------------
     local keymap = vim.keymap
     vim.api.nvim_create_autocmd("LspAttach", {
       group = vim.api.nvim_create_augroup("UserLspConfig", {}),
@@ -70,20 +98,22 @@ return {
       end,
     })
 
-    -- 2) Diagnostic signs
-    local signs = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
+    ---------------------------------------------------------------------------
+    -- Diagnostic signs
+    ---------------------------------------------------------------------------
+    local signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
     for type, icon in pairs(signs) do
       local hl = "DiagnosticSign" .. type
       vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
     end
 
-    -- 3) Shared capabilities + utils
+    ---------------------------------------------------------------------------
+    -- Shared capabilities + utils
+    ---------------------------------------------------------------------------
     local capabilities = require("cmp_nvim_lsp").default_capabilities()
     local util = require("lspconfig.util")
 
-    -- ---- Defensive helpers for root_dir -----------------
     local function coerce_path(x)
-      -- Always return a (absolute) path string (or empty string)
       if type(x) == "number" then
         x = vim.api.nvim_buf_get_name(x)
       end
@@ -102,118 +132,131 @@ return {
       x = coerce_path(x)
       return util.path.dirname(x)
     end
-    -- -----------------------------------------------------
 
-    -- 4) Register servers with the Neovim 0.11+ API and enable them
+    ---------------------------------------------------------------------------
+    -- Commands: LspAdd, LspRemove, LspValidateServers
+    ---------------------------------------------------------------------------
 
-    -- Lua
-    vim.lsp.config("lua_ls", {
-      autostart = true,
-      capabilities = capabilities,
-      settings = {
-        Lua = {
-          diagnostics = { globals = { "vim" } },
-          completion = { callSnippet = "Replace" },
-          workspace = { checkThirdParty = false },
-        },
-      },
-      root_dir = function(fname)
-        return safe_git_root(fname) or or_dirname(fname)
-      end,
-    })
-    vim.lsp.enable("lua_ls")
+    -- :LspAdd <server>
+    vim.api.nvim_create_user_command("LspAdd", function(opts)
+      local server = vim.trim(opts.args)
+      if server == "" then
+        print("No server name provided")
+        return
+      end
 
-    -- Pyright
-    vim.lsp.config("pyright", {
-      autostart = true,
-      capabilities = capabilities,
-      root_dir = function(fname)
-        fname = coerce_path(fname)
-        return util.root_pattern("pyproject.toml", "setup.py", "requirements.txt", ".git")(fname)
-          or safe_git_root(fname)
-          or or_dirname(fname)
-      end,
-    })
-    vim.lsp.enable("pyright")
-
-    -- Ansible (more forgiving root_dir)
-    local ansible_cfg = {
-      name = "ansiblels", -- explicit name helps when starting manually
-      autostart = true,
-      cmd = { "ansible-language-server", "--stdio" },
-      capabilities = capabilities,
-      filetypes = { "yaml", "yaml.ansible" },
-      root_dir = function(fname)
-        fname = coerce_path(fname)
-        return util.root_pattern("ansible.cfg", ".ansible-lint")(fname) or safe_git_root(fname) or vim.loop.cwd()
-      end,
-      settings = {
-        ansible = {
-          ansible = { path = "ansible", useFullyQualifiedCollectionNames = true },
-          ansibleLint = { enabled = true, path = "ansible-lint" }, -- set enabled=false temporarily if needed
-          executionEnvironment = { enabled = false },
-          python = { interpreterPath = "python" },
-          completion = {
-            provideRedirectModules = true,
-            provideModuleOptionAliases = true,
-          },
-        },
-      },
-      on_attach = function(_, bufnr)
-        vim.b.ansiblels_attached = true
-        -- Uncomment if you want a visual confirmation:
-        -- vim.notify("ansiblels attached to buffer " .. bufnr, vim.log.levels.INFO)
-      end,
-    }
-    vim.lsp.config("ansiblels", ansible_cfg)
-    vim.lsp.enable("ansiblels")
-
-    -- 5) Defensive: if autostart didn’t fire, start ansiblels on FileType (idempotent)
-    vim.api.nvim_create_autocmd("FileType", {
-      pattern = { "yaml", "yaml.ansible" },
-      callback = function(args)
-        local bufnr = args.buf
-
-        -- Skip non-normal buffers and health buffers
-        local bt, ft = vim.bo[bufnr].buftype, vim.bo[bufnr].filetype
-        if bt ~= "" and bt ~= "acwrite" then
+      local list = read_list()
+      for _, s in ipairs(list) do
+        if s == server then
+          print("Server already listed: " .. server)
           return
         end
-        if ft == "checkhealth" then
-          return
-        end
+      end
 
-        -- Already attached? do nothing
-        if #vim.lsp.get_clients({ bufnr = bufnr, name = "ansiblels" }) > 0 then
-          return
-        end
-
-        local bufname = vim.api.nvim_buf_get_name(bufnr)
-        local root = util.root_pattern("ansible.cfg", ".ansible-lint")(bufname)
-          or safe_git_root(bufname)
-          or vim.loop.cwd()
-
-        vim.lsp.start({
-          name = "ansiblels",
-          cmd = { "ansible-language-server", "--stdio" },
-          autostart = true,
-          capabilities = capabilities,
-          root_dir = root,
-          filetypes = { "yaml" }, -- simplest. Use only yaml to avoid health “unknown filetype” noise
-          settings = {
-            ansible = {
-              ansible = { path = "ansible", useFullyQualifiedCollectionNames = true },
-              ansibleLint = { enabled = true, path = "ansible-lint" }, -- set false to test
-              executionEnvironment = { enabled = false },
-              python = { interpreterPath = "python" },
-              completion = {
-                provideRedirectModules = true,
-                provideModuleOptionAliases = true,
-              },
-            },
-          },
-        }, { bufnr = bufnr })
+      table.insert(list, server)
+      write_list(list)
+      print("Added server: " .. server)
+    end, {
+      nargs = 1,
+      complete = function()
+        return require("mason-lspconfig").get_available_servers()
       end,
     })
+
+    -- :LspRemove <server>
+    vim.api.nvim_create_user_command("LspRemove", function(opts)
+      local server = vim.trim(opts.args)
+      if server == "" then
+        print("No server name provided")
+        return
+      end
+
+      local list = read_list()
+      local new = {}
+      local removed = false
+
+      for _, s in ipairs(list) do
+        if s == server then
+          removed = true
+        else
+          table.insert(new, s)
+        end
+      end
+
+      if not removed then
+        print("Server not found: " .. server)
+        return
+      end
+
+      write_list(new)
+      print("Removed server: " .. server)
+    end, {
+      nargs = 1,
+      complete = function()
+        return read_list()
+      end,
+    })
+
+    -- :LspValidateServers
+    vim.api.nvim_create_user_command("LspValidateServers", function()
+      local list = read_list()
+
+      local dir = vim.fn.stdpath("config") .. "/lua/doc/plugins/lsp/servers"
+      local paths = vim.fn.globpath(dir, "*.lua", false, true)
+      local configs = {}
+
+      for _, path in ipairs(paths) do
+        local name = vim.fn.fnamemodify(path, ":t:r")
+        configs[name] = true
+      end
+
+      print("Validating LSP server configuration…")
+
+      for _, server in ipairs(list) do
+        if not configs[server] then
+          print("⚠️  Listed but missing config file: " .. server)
+        end
+      end
+
+      for cfg, _ in pairs(configs) do
+        local found = false
+        for _, s in ipairs(list) do
+          if s == cfg then
+            found = true
+            break
+          end
+        end
+        if not found then
+          print("⚠️  Config file exists but not listed: " .. cfg)
+        end
+      end
+
+      print("Validation complete.")
+    end, {})
+
+    ---------------------------------------------------------------------------
+    -- AUTO-DISCOVER SERVER FILES
+    ---------------------------------------------------------------------------
+    local function list_servers()
+      local dir = vim.fn.stdpath("config") .. "/lua/doc/plugins/lsp/servers"
+      local paths = vim.fn.globpath(dir, "*.lua", false, true)
+      local servers = {}
+
+      for _, path in ipairs(paths) do
+        local name = vim.fn.fnamemodify(path, ":t:r")
+        table.insert(servers, name)
+      end
+
+      return servers
+    end
+
+    local servers = list_servers()
+
+    ---------------------------------------------------------------------------
+    -- LOAD EACH SERVER MODULE
+    ---------------------------------------------------------------------------
+    for _, server in ipairs(servers) do
+      require("doc.plugins.lsp.servers." .. server)(capabilities, util, coerce_path, safe_git_root, or_dirname)
+    end
   end,
 }
