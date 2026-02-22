@@ -18,7 +18,7 @@ return {
 
     local mason_lspconfig = require("mason-lspconfig")
     mason_lspconfig.setup({
-      ensure_installed = { "lua_ls", "pyright", "ansiblels", "svelte", "graphql", "emmet_ls" },
+      ensure_installed = { "lua_ls", "pyright", "ansiblels" },
       automatic_installation = true,
     })
 
@@ -135,49 +135,6 @@ return {
       end,
     })
     vim.lsp.enable("pyright")
-
-    -- Svelte
-    vim.lsp.config("svelte", {
-      autostart = true,
-      capabilities = capabilities,
-      on_attach = function(client, _)
-        vim.api.nvim_create_autocmd("BufWritePost", {
-          pattern = { "*.js", "*.ts" },
-          callback = function(ctx)
-            client.notify("$/onDidChangeTsOrJsFile", { uri = vim.uri_from_fname(ctx.file) })
-          end,
-        })
-      end,
-      root_dir = function(fname)
-        return safe_git_root(fname) or or_dirname(fname)
-      end,
-    })
-    vim.lsp.enable("svelte")
-
-    -- GraphQL
-    vim.lsp.config("graphql", {
-      autostart = true,
-      capabilities = capabilities,
-      filetypes = { "graphql", "gql", "svelte", "typescriptreact", "javascriptreact" },
-      root_dir = function(fname)
-        fname = coerce_path(fname)
-        return util.root_pattern(".graphqlrc", ".graphqlrc.*", "graphql.config.*", ".git")(fname)
-          or safe_git_root(fname)
-          or or_dirname(fname)
-      end,
-    })
-    vim.lsp.enable("graphql")
-
-    -- Emmet
-    vim.lsp.config("emmet_ls", {
-      autostart = true,
-      capabilities = capabilities,
-      filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
-      root_dir = function(fname)
-        return safe_git_root(fname) or or_dirname(fname)
-      end,
-    })
-    vim.lsp.enable("emmet_ls")
 
     -- Ansible (more forgiving root_dir)
     local ansible_cfg = {
