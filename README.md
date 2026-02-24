@@ -201,18 +201,3 @@ Checks for consistency between:
 ```
 
 4. Everything installs and validates automatically
-
----
-
-# Summary
-
-This LSP subsystem gives you:
-
-- Clean architecture
-- Predictable behavior
-- Easy maintenance
-- Fast bootstrapping
-- Full namespace portability
-- Zero duplication
-- Rich diagnostics (`LspDoctor`)
-- A fully modular server ecosystem
