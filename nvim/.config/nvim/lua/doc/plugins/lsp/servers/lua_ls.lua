@@ -1,18 +1,41 @@
 return function(capabilities, util, coerce_path, safe_git_root, or_dirname)
-  vim.lsp.config("lua_ls", {
-    autostart = true,
+  local server_name = "lua_ls"
+
+  local function compute_root(fname)
+    fname = coerce_path(fname)
+    return util.root_pattern(".luarc.json", ".luarc.jsonc")(fname) or safe_git_root(fname) or or_dirname(fname)
+  end
+
+  local config = {
+    name = server_name,
+    cmd = { "lua-language-server" },
+    filetypes = { "lua" },
+
+    root_dir = compute_root(vim.api.nvim_buf_get_name(0)),
+
     capabilities = capabilities,
+
     settings = {
       Lua = {
         diagnostics = { globals = { "vim" } },
-        completion = { callSnippet = "Replace" },
-        workspace = { checkThirdParty = false },
       },
     },
-    root_dir = function(fname)
-      return safe_git_root(fname) or or_dirname(fname)
+  }
+
+  vim.lsp._config[server_name] = config
+
+  vim.api.nvim_create_autocmd("FileType", {
+    pattern = config.filetypes,
+    callback = function(args)
+      local bufnr = args.buf
+      local fname = vim.api.nvim_buf_get_name(bufnr)
+
+      config.root_dir = compute_root(fname)
+
+      local clients = vim.lsp.get_clients({ bufnr = bufnr, name = server_name })
+      if #clients == 0 then
+        vim.lsp.start(vim.tbl_extend("force", config, { bufnr = bufnr }))
+      end
     end,
   })
-
-  vim.lsp.enable("lua_ls")
 end

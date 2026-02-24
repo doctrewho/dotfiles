@@ -1,11 +1,3 @@
-To deploy run:
-
-setup.sh
-
-Note for MacOS look for Linux: https://www.youtube.com/watch?v=eTSO5xc-yhs
-
-Information about the NeoVim LSP configuration:
-
 # Neovim LSP Subsystem
 
 This directory contains a fully modular, declarative, self‑maintaining LSP architecture for Neovim.  
@@ -26,14 +18,14 @@ The system is built around four core ideas:
 lua/<namespace>/plugins/lsp/
   lspconfig.lua
   servers/
-    install-these-servers
-    _template.lua
+    new_server.template
     <server>.lua
 ```
 
 ### Namespace
 
-The namespace is the single directory inside `lua/`.  
+The namespace is the single directory inside `lua/`.
+
 Examples:
 
 ```
@@ -42,7 +34,71 @@ lua/jeff/
 lua/alex/
 ```
 
-This namespace is used in all `require()` paths.
+This namespace is used in all `require()` paths and is fully portable.
+
+---
+
+# LSP Commands
+
+The subsystem exposes several Neovim commands for managing servers, configs, and validation.
+
+### **List all configured servers**
+
+```
+:LspList
+```
+
+### **Create a new server config from the template**
+
+```
+:LspNew <server>
+```
+
+### **Edit an existing server config**
+
+```
+:LspEdit <server>
+```
+
+### **Remove a server config**
+
+```
+:LspRemove <server>
+```
+
+### **Validate all server configs**
+
+Checks for syntax errors, missing functions, invalid return values, etc.
+
+```
+:LspValidateServers
+```
+
+### **Synchronize installed servers**
+
+Installs everything listed in `install-these-servers`.
+
+```
+:LspSync
+```
+
+### **LSP Doctor (diagnostics UI)**
+
+Runs a full diagnostic pass and displays:
+
+- missing server files
+- load errors
+- invalid configs
+- runtime exceptions
+
+Output appears in:
+
+- a floating window (press `q` to close)
+- the quickfix list (`:copen`)
+
+```
+:LspDoctor
+```
 
 ---
 
@@ -141,9 +197,10 @@ Checks for consistency between:
 ```
 :LspSync
 :LspValidateServers
+:LspDoctor
 ```
 
-4. Everything installs automatically
+4. Everything installs and validates automatically
 
 ---
 
@@ -157,3 +214,5 @@ This LSP subsystem gives you:
 - Fast bootstrapping
 - Full namespace portability
 - Zero duplication
+- Rich diagnostics (`LspDoctor`)
+- A fully modular server ecosystem

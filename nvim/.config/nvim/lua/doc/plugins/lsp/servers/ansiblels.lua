@@ -1,34 +1,50 @@
 return function(capabilities, util, coerce_path, safe_git_root, or_dirname)
-  local cfg = {
-    name = "ansiblels",
-    autostart = true,
+  local server_name = "ansiblels"
+
+  vim.lsp._config = vim.lsp._config or {}
+
+  local function compute_root(fname)
+    fname = coerce_path(fname)
+    local root = util.root_pattern("ansible.cfg", ".ansible-lint", "requirements.yml", "roles", "playbooks")(fname)
+    return root or safe_git_root(fname) or or_dirname(fname)
+  end
+
+  local config = {
+    name = server_name,
     cmd = { "ansible-language-server", "--stdio" },
-    capabilities = capabilities,
     filetypes = { "yaml", "yaml.ansible" },
 
-    root_dir = function(fname)
-      fname = coerce_path(fname)
-      return util.root_pattern("ansible.cfg", ".ansible-lint")(fname) or safe_git_root(fname) or vim.loop.cwd()
-    end,
+    -- IMPORTANT: store a STRING, not a function
+    root_dir = compute_root(vim.api.nvim_buf_get_name(0)),
+
+    capabilities = capabilities,
 
     settings = {
       ansible = {
-        ansible = { path = "ansible", useFullyQualifiedCollectionNames = true },
-        ansibleLint = { enabled = true, path = "ansible-lint" },
-        executionEnvironment = { enabled = false },
-        python = { interpreterPath = "python" },
-        completion = {
-          provideRedirectModules = true,
-          provideModuleOptionAliases = true,
+        ansible = {
+          useFullyQualifiedCollectionNames = true,
+        },
+        python = {
+          interpreterPath = "python",
         },
       },
     },
-
-    on_attach = function(_, bufnr)
-      vim.b.ansiblels_attached = true
-    end,
   }
 
-  vim.lsp.config("ansiblels", cfg)
-  vim.lsp.enable("ansiblels")
+  vim.lsp._config[server_name] = config
+
+  vim.api.nvim_create_autocmd("FileType", {
+    pattern = config.filetypes,
+    callback = function(args)
+      local bufnr = args.buf
+      local clients = vim.lsp.get_clients({ bufnr = bufnr, name = server_name })
+      if #clients == 0 then
+        -- Recompute root_dir for this buffer
+        local fname = vim.api.nvim_buf_get_name(bufnr)
+        config.root_dir = compute_root(fname)
+
+        vim.lsp.start(vim.tbl_extend("force", config, { bufnr = bufnr }))
+      end
+    end,
+  })
 end
