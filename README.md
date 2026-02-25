@@ -201,3 +201,21 @@ Checks for consistency between:
 ```
 
 4. Everything installs and validates automatically
+
+
+128 Flat Switch Measurements
+12.87mm (y-axis) x 7.73mm (x-axis) x 20.42mm (z-axis)
+Case mount measurements
+25.57mm (z-axis) x 30.64mm (x-axis)
+Hook into top of case
+5.47mm (z-axis)
+U on inside of case
+3.50mm (x-axis) x 2mm (y-axis)
+                                                12.87mm 
+             |   30.64mm                         |-- |
+             | _____________                 -------------------------
+           |---| ----------|---------        |  |30mm | 
+  25.57mm  |-  |/           5.47mm           |  |     | 
+           |-  |||                           |------------------------
+           -------
+           7.73mm 3.5mm
