@@ -24,4 +24,4 @@ vim.api.nvim_create_autocmd("VimEnter", {
   end,
 })
 
-pcall(require, "highlight_overrides")
+-- pcall(require, "highlight_overrides")
