@@ -14,6 +14,12 @@ return {
     keymap.set("n", "<leader>nb", "<cmd>Neotree buffers reveal float<CR>", { desc = "Neotree buffer reveal" })
     keymap.set("n", "<leader>ng", "<cmd>Neotree float git_status<CR>", { desc = "Neotree git status" })
 
+    -- Restore old YAML icon that worked with Agave Nerd Font
+    require("nvim-web-devicons").set_icon({
+      yml = { icon = "", color = "#6D8086", cterm_color = "66", name = "Yml" },
+      yaml = { icon = "", color = "#6D8086", cterm_color = "66", name = "Yaml" },
+    })
+
     require("neo-tree").setup({
       close_if_last_window = true,
       enable_git_status = true,

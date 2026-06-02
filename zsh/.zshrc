@@ -115,7 +115,7 @@ setopt hist_verify
 
 # Add .local/bin to PATH
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
-  export PATH="$HOME/.local/bin:$PATH"
+  export PATH="$HOME/.local/bin:$PATH:$HOME/.cargo/bin"
 fi
 
 # Make it pretty at the end
