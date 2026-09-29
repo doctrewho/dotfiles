@@ -34,14 +34,14 @@ fi
 # --- 2. Homebrew & CLI Tools ---
 if ! command -v brew &> /dev/null; then
     echo "🍺 Installing Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com)"
-    eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || eval "$(/usr/local/bin/brew shellenv)"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    eval "$(/home/homebrew/bin/brew shellenv)" 
 fi
 
 export HOMEBREW_NO_ENV_HINTS="true"
 echo "📦 Installing Brew packages..."
-brew install nvim fzf fd feh bat git-delta eza tlrc thefuck zoxide \
-     zsh-autosuggestions zsh-syntax-highlighting npm neofetch tmux \
+brew install -q -y nvim fzf fd feh bat git-delta eza tlrc thefuck zoxide \
+     zsh-autosuggestions zsh-syntax-highlighting npm fastfetch tmux \
      lazygit yamllint ripgrep vivid tpm
 
 # --- 3. Agave Nerd Font & Starship ---
@@ -58,19 +58,23 @@ unzip -o /tmp/Agave.zip -d "$FONT_DIR"
 fc-cache -fv &> /dev/null || true
 
 echo "⭐ Installing Starship..."
-curl -sS https://starship.rs | sh -s -- -y
+/bin/sh -c "$(curl -sS https://starship.rs/install.sh)" -s "-y"
 
 # --- 4. Clone Plugins & Helper Repos ---
 echo "📂 Cloning helper repositories..."
-[ -d "$HOME/.tmuxifier" ] || git clone https://github.com ~/.tmuxifier
-[ -d "$HOME/fzf-git.sh" ] || git clone https://github.com ~/fzf-git.sh
-[ -d "$HOME/.tmux/plugins/tpm" ] || git clone https://github.com ~/.tmux/plugins/tpm
+[ -d "$HOME/.tmuxifier" ] || git clone https://github.com/jimeh/tmuxifier.git ~/.tmuxifier
+[ -d "$HOME/fzf-git.sh" ] || git clone https://github.com/junegunn/fzf-git.sh ~/fzf-git.sh
+[ -d "$HOME/.tmux/plugins/tpm" ] || git clone https://github.com/tmux-plugins/tpm.git ~/.tmux/plugins/tpm
 
 # --- 5. GNU Stow (Dotfiles) ---
 echo "🔗 Linking dotfiles..."
 # Assumes dotfiles are in a folder named 'dotfiles' in current directory
 if [ -d "./dotfiles" ]; then
-    stow -v -t ~ dotfiles
+    stow -v -t ~ zsh
+    stow -v -t ~ starship
+    stow -v -t ~ kitty
+    stow -v -t ~ nvim
+    stow -v -t ~ tmux
 else
     echo "⚠️  'dotfiles' directory not found. Please verify the folder name."
 fi
@@ -94,5 +98,5 @@ if [[ "$SHELL" != *"zsh"* ]]; then
 fi
 
 echo "✨ Setup complete. Switching to ZSH prompt..."
-exec zsh -l
+# exec zsh -l
 

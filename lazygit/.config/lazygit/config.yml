@@ -1,8 +1,6 @@
----
 gui:
   nerdFontsVersion: "2"
   showIcons: true
-
   theme:
     activeBorderColor: ["#cba6f7", "bold"]
     inactiveBorderColor: ["#a6adc8"]
@@ -14,15 +12,14 @@ gui:
     unstagedChangesColor: ["#f38ba8"]
     defaultFgColor: ["#cdd6f4"]
     searchingActiveBorderColor: ["#f9e2af"]
-
   authorColors:
     "*": "#89b4fa"
-
 git:
-  pagers:
+  diffRenderers:
     - colorArg: "always"
-      pager: >
+      command: >
         delta --paging=never --dark
+
 
               --keep-plus-minus-markers
               --navigate

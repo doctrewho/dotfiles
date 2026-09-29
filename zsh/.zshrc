@@ -14,7 +14,6 @@ alias cd="z"
 alias cat="bat -p --pager=never"
 alias less="bat"
 alias more="bat"
-alias gcc="gcc-14"
 alias history="history 1"
 alias cff="clear && fastfetch"
 
